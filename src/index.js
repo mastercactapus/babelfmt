@@ -6,9 +6,9 @@ import { readFileSync, writeFileSync } from "fs";
 var code = readFileSync(process.argv[2]).toString();
 
 var syntaxPlugins = [
-"decorators","jsx","flow","async-functions","export-extensions","exponentiation-operator",
-"class-properties","function-sent","async-generators","do-expressions","function-bind",
-"object-rest-spread","class-constructor-call","trailing-function-commas"
+	"decorators", "jsx", "flow", "async-functions", "export-extensions", "exponentiation-operator",
+	"class-properties", "function-sent", "async-generators", "do-expressions", "function-bind",
+	"object-rest-spread", "class-constructor-call", "trailing-function-commas"
 ];
 
 var shebang = "";
