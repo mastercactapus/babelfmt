@@ -28,7 +28,7 @@ if (cli.args.length === 0) {// read from stdin
 
 	let data = "";
 	process.stdin.on("data", buf=>data+=buf.toString())
-	process.stdin.on("end",()=>processData("",data));
+	process.stdin.on("end",()=>processData("<standard input>",data));
 	process.stdin.resume();
 } else {
 	cli.args.forEach(file=>processData(file,readFileSync(file).toString()))
@@ -37,14 +37,14 @@ if (cli.args.length === 0) {// read from stdin
 function processData(filename: string, code: string) {
 	var formatted = format(code);
 	var isDiff = formatted === code;
-	if (cli.L) {
+	if (cli.L && isDiff) {
 		console.log(filename);
 	}
 	if (cli.D) {
-		// not implemented
+		// not implemented yet
 	}
 	if (cli.W) {
-		writeFileSync(filename, formatted);
+		if (isDiff) writeFileSync(filename, formatted);
 	} else if (!cli.L) {
 		process.stdout.write(formatted);
 	}
