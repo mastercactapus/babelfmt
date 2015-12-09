@@ -1,10 +1,7 @@
 {
   "name": "babelfmt",
   "version": "1.0.0",
-  "description": "> Turns an AST into code.",
-  "directories": {
-    "test": "test"
-  },
+  "description": "A `gofmt`-inspired formatter for javascript.",
   "main": "lib/index.js",
   "bin": {
     "babelfmt": "main.js"
