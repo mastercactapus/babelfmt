@@ -1,7 +1,7 @@
 
 import {parse} from "babylon";
 import generate from "./babel-generator";
-import { readFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 
 var code = readFileSync(process.argv[2]).toString();
 
@@ -9,7 +9,7 @@ var ast = parse(code,{
   sourceType: "module"
 });
 
-console.log(generate(ast,{
+writeFileSync(process.argv[2], generate(ast,{
   comments: true,
   compact: false
-}, code).code);
+}, code).code + "\n");
