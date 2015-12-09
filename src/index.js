@@ -1,1 +1,2 @@
-export default from "./babel-generator";
+import generator from "./babel-generator";
+export default generator;
