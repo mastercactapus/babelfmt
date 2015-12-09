@@ -1,5 +1,5 @@
 
-import {parse} from "babylon";
+import { parse } from "babylon";
 import generate from "./babel-generator";
 import { readFileSync, writeFileSync } from "fs";
 
@@ -11,12 +11,11 @@ if (code[0] === "#") {
 	code = code.slice(shebang.length);
 }
 
-
-var ast = parse(code,{
-  sourceType: "module"
+var ast = parse(code, {
+	sourceType: "module"
 });
 
-writeFileSync(process.argv[2], shebang + generate(ast,{
-  comments: true,
-  compact: false
+writeFileSync(process.argv[2], shebang + generate(ast, {
+	comments: true,
+	compact: false
 }, code).code + "\n");
