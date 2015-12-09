@@ -32,6 +32,7 @@
     "babylon": "^6.3.15",
     "commander": "^2.9.0",
     "detect-indent": "^4.0.0",
+    "diff": "^2.2.1",
     "is-integer": "^1.0.6",
     "lodash": "^3.10.1",
     "repeating": "^2.0.0",

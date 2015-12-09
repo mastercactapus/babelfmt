@@ -3,6 +3,7 @@ import { parse } from "babylon";
 import generate from "./index";
 import { readFileSync, writeFileSync } from "fs";
 import cli from "commander"
+import {createTwoFilesPatch} from "diff";
 
 
 const syntaxPlugins = [
@@ -36,16 +37,16 @@ if (cli.args.length === 0) {// read from stdin
 
 function processData(filename: string, code: string) {
 	var formatted = format(code);
-	var isDiff = formatted === code;
+	var isDiff = formatted !== code;
 	if (cli.L && isDiff) {
 		console.log(filename);
 	}
-	if (cli.D) {
-		// not implemented yet
+	if (cli.D && isDiff) {
+		console.log(createTwoFilesPatch(filename, "babelfmt/" + filename, code, formatted,"",""));
 	}
 	if (cli.W) {
 		if (isDiff) writeFileSync(filename, formatted);
-	} else if (!cli.L) {
+	} else if (!cli.L && !cli.D) {
 		process.stdout.write(formatted);
 	}
 }
@@ -53,7 +54,7 @@ function processData(filename: string, code: string) {
 function format(_code: string): string {
 	var shebang = "", code = "";
 	if (_code[0] === "#") {
-		shebang = /^#.*?$/m.exec(code)[0] + "\n";
+		shebang = /^#.*?$/m.exec(_code)[0] + "\n";
 		code = _code.slice(shebang.length);
 	} else {
 		code = _code;
