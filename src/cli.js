@@ -13,7 +13,7 @@ const syntaxPlugins = [
 
 cli
 .version(require("../package").version)
-.usage("[flags] <file ...>")
+.usage("[flags] [path ...]")
 .option("-d", "display diffs instead of rewriting files")
 .option("-l", "list files whos formatting differs from babelfmt's")
 .option("-w", "write result to (source) file instead of stdout")
