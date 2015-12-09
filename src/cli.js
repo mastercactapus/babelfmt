@@ -23,12 +23,12 @@ if (cli.args.length === 0) {// read from stdin
 
 	if (cli.W) {
 		console.error("error: cannot use -w with standard input");
-		processs.exit(1);
+		process.exit(1);
 	}
 
-	let data = new Buffer();
-	process.stdin.on("data", buf=>data.write(buf))
-	process.stdin.on("end",()=>processData("",data.toString()));
+	let data = "";
+	process.stdin.on("data", buf=>data+=buf.toString())
+	process.stdin.on("end",()=>processData("",data));
 	process.stdin.resume();
 } else {
 	cli.args.forEach(file=>processData(file,readFileSync(file).toString()))
