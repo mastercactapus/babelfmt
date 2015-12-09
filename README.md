@@ -1,21 +1,4 @@
-# babel-generator
+# babelfmt
 
-> Turns an AST into code.
+A `gofmt`-inspired formatter for javascript.
 
-## Install
-
-```sh
-$ npm install babel-generator
-```
-
-## Usage
-
-```js
-import {parse} from 'babylon';
-import generate from 'babel-generator';
-
-const code = 'class Example {}';
-const ast = parse(ast);
-
-const output = generate(ast, { /* options */ }, code);
-```
