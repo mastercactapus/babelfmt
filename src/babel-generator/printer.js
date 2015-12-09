@@ -48,7 +48,7 @@ export default class Printer extends Buffer {
 
     this.map.mark(node, "start");
 
-    this._print(node, parent);
+    this._print(node, parent, opts);
 
     // Check again if any of our children may have left an aux comment on the stack
     if (node.loc) this.printAuxAfterComment();
@@ -96,7 +96,7 @@ export default class Printer extends Buffer {
     }
   }
 
-  _print(node, parent) {
+  _print(node, parent, opts) {
     // In compact mode we need to produce as little bytes as needed
     // and need to make sure that string quoting is consistent.
     // That means we have to always reprint as opposed to getting
@@ -111,7 +111,7 @@ export default class Printer extends Buffer {
     }
 
     let printMethod = this[node.type];
-    printMethod.call(this, node, parent);
+    printMethod.call(this, node, parent, opts);
   }
 
   printJoin(nodes: ?Array, parent: Object, opts = {}) {
@@ -138,7 +138,11 @@ export default class Printer extends Buffer {
 
     for (i = 0; i < nodes.length; i++) {
       node = nodes[i];
-      this.print(node, parent, printOpts);
+      if (opts.align) {
+        this.print(node, parent, Object.assign({alignBy: opts.align[i]}, printOpts));
+      } else {
+        this.print(node, parent, printOpts);
+      }
     }
 
     if (opts.indent) this.dedent();

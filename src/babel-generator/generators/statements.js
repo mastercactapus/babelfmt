@@ -1,5 +1,6 @@
 import repeating from "repeating";
 import * as t from "babel-types";
+import * as util from "../../util";
 
 export function WithStatement(node: Object) {
   this.keyword("with");
@@ -192,15 +193,26 @@ export function VariableDeclaration(node: Object, parent: Object) {
   this.push(node.kind + " ");
 
   let hasInits = false;
+  let align = [];
   // don't add whitespace to loop heads
   if (!t.isFor(parent)) {
     for (let declar of (node.declarations: Array<Object>)) {
       if (declar.init) {
         // has an init so let's split it up over multiple lines
         hasInits = true;
+        if (declar.init.loc.start.line === declar.init.loc.end.line) {
+          // init is one line, so track the id length
+          align.push(declar.id.end-declar.id.start);
+        } else {
+          align.push(0);
+        }
+      } else {
+        align.push(0);
       }
     }
   }
+
+  align = util.groupMaxDiff(align);
 
   //
   // use a pretty separator when we aren't in compact mode, have initializers and don't have retainLines on
@@ -221,7 +233,7 @@ export function VariableDeclaration(node: Object, parent: Object) {
 
   //
 
-  this.printList(node.declarations, node, { separator: sep });
+  this.printList(node.declarations, node, { separator: sep, align });
 
   if (t.isFor(parent)) {
     // don't give semicolons to these nodes since they'll be inserted in the parent generator
@@ -231,11 +243,16 @@ export function VariableDeclaration(node: Object, parent: Object) {
   this.semicolon();
 }
 
-export function VariableDeclarator(node: Object) {
+export function VariableDeclarator(node: Object, parent: Object, opts: Object) {
   this.print(node.id, node);
   this.print(node.id.typeAnnotation, node);
   if (node.init) {
     this.space();
+    if (opts&&opts.alignBy) {
+      for (let i=0;i<opts.alignBy;i++){
+        this.push(" ");
+      }
+    }
     this.push("=");
     this.space();
     this.print(node.init, node);
