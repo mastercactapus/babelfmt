@@ -2,9 +2,8 @@
 import { parse } from "babylon";
 import generate from "./index";
 import { readFileSync, writeFileSync } from "fs";
-import cli from "commander"
-import {createTwoFilesPatch} from "diff";
-
+import cli from "commander";
+import { createTwoFilesPatch } from "diff";
 
 const syntaxPlugins = [
 	"decorators", "jsx", "flow", "async-functions", "export-extensions", "exponentiation-operator",
@@ -20,7 +19,8 @@ cli
 .option("-w", "write result to (source) file instead of stdout")
 .parse(process.argv);
 
-if (cli.args.length === 0) {// read from stdin
+if (cli.args.length === 0) {
+	// read from stdin
 
 	if (cli.W) {
 		console.error("error: cannot use -w with standard input");
@@ -28,11 +28,11 @@ if (cli.args.length === 0) {// read from stdin
 	}
 
 	let data = "";
-	process.stdin.on("data", buf=>data+=buf.toString())
-	process.stdin.on("end",()=>processData("<standard input>",data));
+	process.stdin.on("data", buf => data += buf.toString());
+	process.stdin.on("end", () => processData("<standard input>", data));
 	process.stdin.resume();
 } else {
-	cli.args.forEach(file=>processData(file,readFileSync(file).toString()))
+	cli.args.forEach(file => processData(file, readFileSync(file).toString()));
 }
 
 function processData(filename: string, code: string) {
@@ -42,7 +42,7 @@ function processData(filename: string, code: string) {
 		console.log(filename);
 	}
 	if (cli.D && isDiff) {
-		console.log(createTwoFilesPatch(filename, "babelfmt/" + filename, code, formatted,"",""));
+		console.log(createTwoFilesPatch(filename, "babelfmt/" + filename, code, formatted, "", ""));
 	}
 	if (cli.W) {
 		if (isDiff) writeFileSync(filename, formatted);
@@ -52,7 +52,8 @@ function processData(filename: string, code: string) {
 }
 
 function format(_code: string): string {
-	var shebang = "", code = "";
+	var shebang = "",
+	    code = "";
 	if (_code[0] === "#") {
 		shebang = /^#.*?$/m.exec(_code)[0] + "\n";
 		code = _code.slice(shebang.length);
@@ -66,7 +67,7 @@ function format(_code: string): string {
 	});
 
 	return shebang + generate(ast, {
-	comments: true,
-	compact: false
-}, code).code + "\n";
-} 
+		comments: true,
+		compact: false
+	}, code).code + "\n";
+}
