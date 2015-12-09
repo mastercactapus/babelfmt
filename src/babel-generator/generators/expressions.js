@@ -233,6 +233,9 @@ export function MemberExpression(node: Object) {
       }
     }
 
+    if (node.object.loc.end.line !== node.property.loc.start.line) {
+      this.newline();
+    }
     this.push(".");
     this.print(node.property, node);
   }
