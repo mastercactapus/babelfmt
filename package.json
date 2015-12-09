@@ -1,0 +1,35 @@
+{
+  "name": "babelfmt",
+  "version": "1.0.0",
+  "description": "> Turns an AST into code.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "bin": {
+    "babelfmt": "main.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "babel-messages": "^6.3.13",
+    "babel-runtime": "^6.3.13",
+    "babel-types": "^6.3.14",
+    "babylon": "^6.3.15",
+    "detect-indent": "^4.0.0",
+    "is-integer": "^1.0.6",
+    "lodash": "^3.10.1",
+    "repeating": "^2.0.0",
+    "source-map": "^0.5.3",
+    "trim-right": "^1.0.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.3.15",
+    "babel-plugin-transform-flow-strip-types": "^6.3.15",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-stage-1": "^6.3.13"   
+  }
+}
