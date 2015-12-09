@@ -3,6 +3,7 @@
 /* eslint quotes: 0 */
 
 import * as t from "babel-types";
+import * as util from "../../util";
 
 export function Identifier(node: Object) {
   this.push(node.name);
@@ -26,8 +27,38 @@ export function ObjectExpression(node: Object) {
   this.printInnerComments(node);
 
   if (props.length) {
+    let bounds = [];
+    let align = props.map((prop,idx)=>{
+      if (prop.shorthand) return 0;
+      if (prop.computed) return 0;
+
+      // same-line props are exempt
+      if (idx>0&&props[idx-1].loc.end.line===prop.loc.start.line) {
+        return 0;
+      }
+      if (idx < props.length-1 && props[idx+1].loc.start.line===prop.loc.end.line) {
+        return 0;
+      }
+
+      if (idx>0 && props[idx-1].loc.end.line!==prop.loc.start.line-1) {
+        // more than one newline means reset indentation
+        bounds.push(idx);
+      }
+
+      if (prop.key.type === "StringLiteral") {
+        // add 2
+        return prop.key.value.length + 2;
+      } else if (prop.key.type === "Identifier") {
+        return prop.key.name.length;
+      } else {
+        return 0;
+      }
+    })
+    
+    align = util.groupMaxBoundariesDiff(align, bounds);
+
     this.space();
-    this.printList(props, node, { indent: true });
+    this.printList(props, node, { indent: true, align });
     this.space();
   }
 
@@ -41,7 +72,7 @@ export function ObjectMethod(node: Object) {
   this._method(node);
 }
 
-export function ObjectProperty(node: Object) {
+export function ObjectProperty(node: Object, parent: Object, opts: Object) {
   this.printJoin(node.decorators, node, { separator: "" });
 
   if (node.computed) {
@@ -68,6 +99,11 @@ export function ObjectProperty(node: Object) {
 
   this.push(":");
   this.space();
+  if (opts && opts.alignBy) {
+    for (let i=0;i<opts.alignBy;i++){
+      this.push(" ");
+    }
+  }
   this.print(node.value, node);
 }
 
