@@ -78,10 +78,25 @@ export function ArrayExpression(node: Object) {
   this.push("[");
   this.printInnerComments(node);
 
+  var lastLine = node.loc.start.line;
+  var isMultiLine = false;
+  if (lastLine!==node.loc.end.line) {
+    this.indent();
+    isMultiLine = true;
+  }
+
   for (let i = 0; i < elems.length; i++) {
     let elem = elems[i];
     if (elem) {
-      if (i > 0) this.space();
+      if (elem.loc.start.line === lastLine) {
+        this.space();
+      } else if (elem.loc.start.line === lastLine+1) {
+        this.newline();
+      } else {
+        this.newline();
+        this.newline();
+      }
+      lastLine = elem.loc.end.line;
       this.print(elem, node);
       if (i < len - 1) this.push(",");
     } else {
@@ -92,6 +107,13 @@ export function ArrayExpression(node: Object) {
       // both (all) of the holes.
       this.push(",");
     }
+  }
+
+  if (lastLine!==node.loc.end.line) {
+    this.dedent();
+    this.newline();
+  } else if (isMultiLine) {
+    this.dedent();
   }
 
   this.push("]");
