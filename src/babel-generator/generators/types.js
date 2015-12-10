@@ -116,7 +116,7 @@ export function ArrayExpression(node: Object) {
 
   var lastLine = node.loc.start.line;
   var isMultiLine = false;
-  if (lastLine!==node.loc.end.line) {
+  if (lastLine!==node.loc.end.line&&elems.length) {
     this.indent();
     isMultiLine = true;
   }
@@ -145,7 +145,7 @@ export function ArrayExpression(node: Object) {
     }
   }
 
-  if (lastLine!==node.loc.end.line) {
+  if (isMultiLine && lastLine!==node.loc.end.line) {
     this.dedent();
     this.newline();
   } else if (isMultiLine) {
