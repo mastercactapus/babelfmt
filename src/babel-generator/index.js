@@ -33,6 +33,17 @@ export class CodeGenerator extends Printer {
     this.map        = new SourceMap(position, opts, code);
   }
 
+  calculateLines(ast) {
+    var gen = new CodeGenerator(ast, this.opts);
+    var res = gen.generate();
+    return res.code.split("\n").length;
+  }
+  calculateLength(ast) {
+    var gen = new CodeGenerator(ast, this.opts);
+    var res = gen.generate();
+    return res.code.length;
+  }
+
   format: {
     shouldPrintComment: boolean;
     retainLines: boolean;

@@ -200,9 +200,9 @@ export function VariableDeclaration(node: Object, parent: Object) {
       if (declar.init) {
         // has an init so let's split it up over multiple lines
         hasInits = true;
-        if (declar.init.loc.start.line === declar.init.loc.end.line) {
+        if (this.calculateLines(declar.init) === 1) {
           // init is one line, so track the id length
-          align.push(declar.id.end-declar.id.start);
+          align.push(this.calculateLength(declar.id));
         } else {
           align.push(0);
         }
@@ -228,12 +228,12 @@ export function VariableDeclaration(node: Object, parent: Object) {
 
   let sep;
   if (!this.format.compact && !this.format.concise && hasInits && !this.format.retainLines) {
-    sep = `,\n${repeating(" ", node.kind.length + 1)}`;
+    sep = `,\n`;
   }
 
-  //
-
+  this.indentFixed(node.kind.length + 1);
   this.printList(node.declarations, node, { separator: sep, align });
+  this.dedentFixed();
 
   if (t.isFor(parent)) {
     // don't give semicolons to these nodes since they'll be inserted in the parent generator

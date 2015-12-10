@@ -12,6 +12,7 @@ export default class Buffer {
     this.parenPushNewlineState = null;
     this.position = position;
     this._indent = format.indent.base;
+    this._indentFixed = 0;
     this.format = format;
     this.buf = "";
   }
@@ -51,7 +52,7 @@ export default class Buffer {
     if (this.format.compact || this.format.concise) {
       return "";
     } else {
-      return repeating(this.format.indent.style, this._indent);
+      return repeating(this.format.indent.style, this._indent) + repeating(" ", this._indentFixed);
     }
   }
 
@@ -61,6 +62,22 @@ export default class Buffer {
 
   indentSize() {
     return this.getIndent().length;
+  }
+
+  /**
+   * Set a supplemental fixed indent
+   */
+
+  indentFixed(n: Number) {
+    this._indentFixed=n;
+  }
+
+  /**
+   * Unset supplemental fixed indent
+   */
+
+  dedentFixed(n: Number) {
+    this._indentFixed=0;
   }
 
   /**
@@ -257,7 +274,7 @@ export default class Buffer {
    */
 
   push(str: string, noIndent?: boolean) {
-    if (!this.format.compact && this._indent && !noIndent && str !== "\n") {
+    if (!this.format.compact && (this._indent+this._indentFixed) && !noIndent && str !== "\n") {
       // we have an indent level and we aren't pushing a newline
       let indent = this.getIndent();
 
