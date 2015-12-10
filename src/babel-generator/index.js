@@ -120,6 +120,7 @@ export class CodeGenerator extends Printer {
    * Determine if input code uses more single or double quotes.
    */
   static findCommonStringDelimiter(code, tokens) {
+    if (!code) return "double";
     let occurences = {
       single: 0,
       double: 0

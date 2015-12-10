@@ -89,6 +89,10 @@ function format(_code: string): string {
 
 	return shebang + generate(ast, {
 		comments: true,
-		compact:  false
-	}, code).code + "\n";
+		compact:  false,
+		quotes: "double",
+		indent: {
+			style: "  "
+		}
+	}).code + "\n";
 }
