@@ -6,9 +6,19 @@ import cli from "commander";
 import { createTwoFilesPatch } from "diff";
 
 const syntaxPlugins = [
-	"decorators", "jsx", "flow", "async-functions", "export-extensions", "exponentiation-operator",
-	"class-properties", "function-sent", "async-generators", "do-expressions", "function-bind",
-	"object-rest-spread", "class-constructor-call", "trailing-function-commas"
+	"jsx",
+	"flow",
+	"asyncFunctions",
+	"classConstructorCall",
+	"doExpressions",
+	"trailingFunctionCommas",
+	"objectRestSpread",
+	"decorators",
+	"classProperties",
+	"exportExtensions",
+	"exponentiationOperator",
+	"asyncGenerators",
+	"functionSent"
 ];
 
 cli
