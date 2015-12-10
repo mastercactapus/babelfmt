@@ -32,15 +32,21 @@ export function ObjectExpression(node: Object) {
       if (prop.shorthand) return 0;
       if (prop.computed) return 0;
 
+      // multi-line props are exempt
+      if (this.calculateLines(prop.value) > 1) {
+        return 0;
+      } 
+
       // same-line props are exempt
-      if (idx>0&&props[idx-1].loc.end.line===prop.loc.start.line) {
+      if (idx>0&&props[idx-1].loc.start.line===prop.loc.start.line) {
         return 0;
       }
-      if (idx < props.length-1 && props[idx+1].loc.start.line===prop.loc.end.line) {
+      if (idx < props.length-1 && props[idx+1].loc.start.line===prop.loc.start.line) {
         return 0;
       }
 
-      if (idx>0 && props[idx-1].loc.end.line!==prop.loc.start.line-1) {
+
+      if (idx>0 && props[idx-1].loc.start.line!==prop.loc.start.line-1) {
         // more than one newline means reset indentation
         bounds.push(idx);
       }

@@ -95,7 +95,7 @@ export function CallExpression(node: Object) {
 
   this.push("(");
 
-  if (node.arguments) {
+  if (node.arguments && node.arguments.length) {
     if (node.arguments[0].loc.start.line !== node.arguments[node.arguments.length-1].loc.start.line) node._prettyCall = true;
   }
 

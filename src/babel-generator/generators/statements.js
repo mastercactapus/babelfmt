@@ -233,7 +233,7 @@ export function VariableDeclaration(node: Object, parent: Object) {
 
   this.indentFixed(node.kind.length + 1);
   this.printList(node.declarations, node, { separator: sep, align });
-  this.dedentFixed();
+  this.dedentFixed(node.kind.length + 1);
 
   if (t.isFor(parent)) {
     // don't give semicolons to these nodes since they'll be inserted in the parent generator

@@ -69,7 +69,7 @@ export default class Buffer {
    */
 
   indentFixed(n: Number) {
-    this._indentFixed=n;
+    this._indentFixed+=n;
   }
 
   /**
@@ -77,7 +77,7 @@ export default class Buffer {
    */
 
   dedentFixed(n: Number) {
-    this._indentFixed=0;
+    this._indentFixed-=n;
   }
 
   /**
