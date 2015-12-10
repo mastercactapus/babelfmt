@@ -2,6 +2,7 @@ import repeating from "repeating";
 import Buffer from "./buffer";
 import n from "./node";
 import * as t from "babel-types";
+import {extend} from "lodash";
 
 export default class Printer extends Buffer {
   constructor(...args) {
@@ -139,7 +140,7 @@ export default class Printer extends Buffer {
     for (i = 0; i < nodes.length; i++) {
       node = nodes[i];
       if (opts.align) {
-        this.print(node, parent, Object.assign({alignBy: opts.align[i]}, printOpts));
+        this.print(node, parent, extend({alignBy: opts.align[i]}, printOpts));
       } else {
         this.print(node, parent, printOpts);
       }
@@ -325,5 +326,5 @@ for (let generator of [
   require("./generators/base"),
   require("./generators/jsx")
 ]) {
-  Object.assign(Printer.prototype, generator);
+  extend(Printer.prototype, generator);
 }
