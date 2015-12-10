@@ -4,6 +4,7 @@ import generate from "./index";
 import { readFileSync, writeFileSync } from "fs";
 import cli from "commander";
 import { createTwoFilesPatch } from "diff";
+import codeFrame from "babel-code-frame";
 
 const syntaxPlugins = [
 	"jsx",
@@ -63,7 +64,7 @@ function processData(filename: string, code: string) {
 
 function format(_code: string): string {
 	var shebang = "",
-	    code = "";
+	    code    = "";
 	if (_code[0] === "#") {
 		shebang = /^#.*?$/m.exec(_code)[0] + "\n";
 		code = _code.slice(shebang.length);
@@ -71,13 +72,23 @@ function format(_code: string): string {
 		code = _code;
 	}
 
-	var ast = parse(code, {
-		sourceType: "module",
-		plugins: syntaxPlugins
-	});
+	var ast;
+	try {
+		ast = parse(code, {
+			sourceType: "module",
+			plugins:    syntaxPlugins
+		});
+	} catch (e) {
+		if (e.loc) {
+			console.error(e.message);
+			console.error(codeFrame(shebang + code, shebang ? e.loc.line + 1 : e.loc.line, e.loc.column, { highlightCode: true }));
+			process.exit(1);
+		}
+		throw e;
+	}
 
 	return shebang + generate(ast, {
 		comments: true,
-		compact: false
+		compact:  false
 	}, code).code + "\n";
 }
