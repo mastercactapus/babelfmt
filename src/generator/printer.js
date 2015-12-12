@@ -32,7 +32,7 @@ export default class Printer extends Buffer {
     if (!nodeA || !nodeA.loc || !nodeB || !nodeB.loc) return
     var lineB = locB==="start" ? nodeB.loc.start.line : nodeB.loc.end.line;
     var lineA = loc==="start" ? nodeA.loc.start.line : nodeA.loc.end.line;
-    if (!skipOne && lineA !== lineB) {
+    if (!skipOne && !this.IsNewLine() && lineA !== lineB) {
       this.Writeln()
     }
     if (lineB - lineA > 1) {
@@ -113,6 +113,9 @@ export default class Printer extends Buffer {
     }
     this.Space()
     this.Print(node.id, node)
+    if (node.typeParameters) {
+      this.Print(node.typeParameters, node)
+    }
     this.Space()
     this.Write("(")
     this.PrintList(node.params, node, ", ")
@@ -130,6 +133,9 @@ export default class Printer extends Buffer {
 
   Identifier(node: BabelNodeIdentifier, parent: ?BabelNode) {
     this.Write(node.name)
+    if (node.optional) {
+      this.Write("?")
+    }
     if (node.typeAnnotation) {
       this.Print(node.typeAnnotation, node)
     }
@@ -139,15 +145,34 @@ export default class Printer extends Buffer {
     var oneLine = IsOneLine(node)
     this.Write("{")
 
-    this.Indent();
-    this.Write("\n")
+    var count = node.body.length;
+    if (node.directives) count+=node.directives.length;
+
+    if (count === 0) {
+      this.Write("}")
+      return
+    }
+
+    var multiline = true;
+    if (count === 1 && node.loc && node.loc.start.line === node.loc.end.line) multiline = false;
+
+    if (multiline) {
+      this.Indent();
+      this.Writeln()
+    } else {
+      this.Space()
+    }
     if (node.directives && node.directives.length) {
       this.PrintList(node.directives, node, "\n")
-      this.Write("\n")
+      if (node.body.length) this.Writeln()
     }
     this.PrintList(node.body, node, "\n")
-    this.Dedent()
-    this.Write("\n")
+    if (multiline) {
+      this.Dedent()
+      this.Writeln()
+    } else {
+      this.Space()
+    }
 
     this.Write("}")
   }
@@ -187,6 +212,61 @@ export default class Printer extends Buffer {
       this.Print(node.init, parent)
     }
     if (indent) this.Dedent()
+  }
+
+  TypeAnnotation(node: BabelNodeTypeAnnotation, parent: ?BabelNode) {
+    this.Write(": ")
+    this.Print(node.typeAnnotation, node)
+  }
+  GenericTypeAnnotation(node: BabelNodeGenericTypeAnnotation, parent: ?BabelNode) {
+    this.Print(node.id, node)
+    if (node.typeParameters) {
+      this.Print(node.typeParameters, node)
+    }
+  }
+  BooleanTypeAnnotation(node: BabelNodeBooleanTypeAnnotation, parent: ?BabelNode) {
+    this.Write("boolean")
+  }
+  TypeParameterInstantiation(node: BabelNodeTypeParameterInstantiation, parent: ?BabelNode) {
+    this.Write("<")
+    this.PrintList(node.params, node, ", ")
+  }
+  StringTypeAnnotation(node: BabelNodeStringTypeAnnotation, parent: ?BabelNode) {
+    this.Write("string")
+  }
+  ThisExpression(node: BabelNodeThisExpression, parent: ?BabelNode) {
+    this.Write("this")
+  }
+  NullableTypeAnnotation(node: BabelNodeNullableTypeAnnotation, parent: ?BabelNode) {
+    this.Write("?")
+    this.Print(node.typeAnnotation, node)
+  }
+  AssignmentPattern(node: BabelNodeAssignmentPattern, parent: ?BabelNode) {
+    this.Print(node.left, node)
+    this.Write(" = ")
+    this.Print(node.right, node)
+  }
+  UnionTypeAnnotation(node: BabelNodeUnionTypeAnnotation, parent: ?BabelNode) {
+    this.PrintList(node.types, node, "|")
+  }
+  StringLiteralTypeAnnotation(node: BabelNodeStringLiteralTypeAnnotation, parent: ?BabelNode) {
+    this.PrintQuote(node.value)
+  }
+  ArrowFunctionExpression(node: BabelNodeArrowFunctionExpression, parent: ?BabelNode) {
+    if (node.async) {
+      this.Write("async ")
+    }
+    if (node.params.length === 1 && !node.params[0].typeAnnotation) {
+      this.Print(node.params[0], node)
+    } else {
+      this.Write("(")
+      this.PrintList(node.params, node, ", ")
+      this.Write(")")
+    }
+    this.Space()
+    this.Write("=>")
+    this.Space()
+    this.Print(node.body, node)
   }
 
   BinaryExpression(node: BabelNodeBinaryExpression, parent: ?BabelNode) {
