@@ -3,6 +3,11 @@ import Buffer from "./buffer";
 import _ from "lodash";
 import * as t from "babel-types";
 
+function SameLine(nodeA: BabelNode, nodeB: BabelNode): bool {
+  if (!nodeA.loc || !nodeB.loc) return true;
+  return nodeA.loc.end.line === nodeB.loc.start.line;
+}
+
 export default class Printer extends Buffer {
   constructor() {
     super()
@@ -21,6 +26,18 @@ export default class Printer extends Buffer {
 
   Write(s: string) {
     super.Write(s)
+  }
+
+  PrintWhitespace(nodeA: ?BabelNode, nodeB: ?BabelNode, loc: "start"|"end" = "end", skipOne: bool = false, locB:"start"|"end"="start") {
+    if (!nodeA || !nodeA.loc || !nodeB || !nodeB.loc) return
+    var lineB = locB==="start" ? nodeB.loc.start.line : nodeB.loc.end.line;
+    var lineA = loc==="start" ? nodeA.loc.start.line : nodeA.loc.end.line;
+    if (!skipOne && lineA !== lineB) {
+      this.Writeln()
+    }
+    if (lineB - lineA > 1) {
+      this.Writeln()
+    }
   }
 
   PrintBlankLines(node: BabelNode) {
@@ -45,8 +62,15 @@ export default class Printer extends Buffer {
   }
 
   PrintList(nodes: Array<BabelNode>, parent: ?BabelNode, separator: string = "\n") {
+    if (nodes.length) {
+      this.PrintWhitespace(parent, nodes[0], "start")
+    }
+
     nodes.forEach((node, index)=>{
-      if (index) this.Write(separator);
+      if (index) {
+        this.Write(separator);
+        this.PrintWhitespace(nodes[index-1], node, "end", separator.indexOf("\n") !== -1 )
+      }
       this.Print(node, parent);
     });
   }
@@ -127,7 +151,22 @@ export default class Printer extends Buffer {
 
     this.Write("}")
   }
+  UnaryExpression(node: BabelNodeUnaryExpression, parent: ?BabelNode) {
+    var needsSpace = /[a-z]$/.test(node.operator);
+    var arg = node.argument;
 
+    if (t.isUpdateExpression(arg) || t.isUnaryExpression(arg)) {
+      needsSpace = true;
+    }
+
+    if (t.isUnaryExpression(arg) && arg.operator === "!") {
+      needsSpace = false;
+    }
+
+    this.Write(node.operator)
+    if (needsSpace) this.Space();
+    this.Print(node.argument, node);
+  }
   VariableDeclaration(node: BabelNodeVariableDeclaration, parent: ?BabelNode) {
     this.Write(node.kind)
     this.Space()
@@ -135,6 +174,11 @@ export default class Printer extends Buffer {
   }
 
   VariableDeclarator(node: BabelNodeVariableDeclarator, parent: ?BabelNode) {
+    var indent = false;
+    if (this.IsNewLine() && parent && t.isVariableDeclaration(parent)) {
+        indent =true;
+        this.Indent()
+    }
     this.Print(node.id, node)
     if (node.init) {
       this.Space()
@@ -142,6 +186,68 @@ export default class Printer extends Buffer {
       this.Space()
       this.Print(node.init, parent)
     }
+    if (indent) this.Dedent()
+  }
+
+  BinaryExpression(node: BabelNodeBinaryExpression, parent: ?BabelNode) {
+    this.Print(node.left, node)
+    this.Indent()
+    if (!SameLine(node.left, node.right)) {
+      this.Writeln()
+    } else {
+      this.Space()
+    }
+    this.Write(node.operator)
+    this.Space()
+    this.Print(node.right, node)
+    this.Dedent()
+  }
+
+  LogicalExpression(node: BabelNodeLogicalExpression, parent: ?BabelNode) {
+    this.Print(node.left, node)
+    this.Indent()
+    if (!SameLine(node.left, node.right)) {
+      this.Writeln()
+    } else {
+      this.Space()
+    }
+    this.Write(node.operator)
+    this.Space()
+    this.Print(node.right, node)
+    this.Dedent()
+  }
+
+  ObjectExpression(node: BabelNodeObjectExpression, parent: ?BabelNode) {
+    this.Write("{")
+    if (node.properties.length) this.Space()
+    this.Indent()
+    this.PrintList(node.properties, node, ", ")
+    this.Dedent()
+    if (node.properties.length) {
+      this.Space()
+      var lastProp = node.properties[node.properties.length-1];
+      this.PrintWhitespace(lastProp, node, "end", false, "end")
+    }
+    this.Write("}")
+  }
+  ObjectProperty(node: BabelNodeObjectProperty, parent: ?BabelNode) {
+    if (node.decorators && node.decorators.length) {
+      this.PrintList(node.decorators, node, "\n")
+      this.Writeln()
+    }
+    if (node.shorthand) {
+      this.Print(node.key, node)
+      return
+    }
+    if (node.computed) {
+      this.Write("[")
+    }
+    this.Print(node.key, node)
+    if (node.computed) {
+      this.Write("]")
+    }
+    this.WriteAlign(": ", "object_prop")
+    this.Print(node.value, node)
   }
 
   BooleanLiteral(node: BabelNodeBooleanLiteral, parent: ?BabelNode) {
