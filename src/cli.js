@@ -5,6 +5,9 @@ import { readFileSync, writeFileSync } from "fs";
 import cli from "commander";
 import { createTwoFilesPatch } from "diff";
 import codeFrame from "babel-code-frame";
+import Printer from "./generator/printer";
+import transform from "./transform";
+import traverse from "babel-traverse";
 
 const syntaxPlugins = [
 	"jsx",
@@ -28,6 +31,7 @@ cli
 .option("-d", "display diffs instead of rewriting files")
 .option("-l", "list files whos formatting differs from babelfmt's")
 .option("-w", "write result to (source) file instead of stdout")
+.option("-e", "use experimental formatter")
 .parse(process.argv);
 
 if (cli.args.length === 0) {
@@ -78,6 +82,7 @@ function format(_code: string): string {
 			sourceType: "module",
 			plugins:    syntaxPlugins
 		});
+		// traverse(ast, transform)
 	} catch (e) {
 		if (e.loc) {
 			console.error(e.message);
@@ -85,6 +90,12 @@ function format(_code: string): string {
 			process.exit(1);
 		}
 		throw e;
+	}
+
+	if (cli.E) {
+		var p = new Printer();
+		p.File(ast);
+		return p.String()
 	}
 
 	return shebang + generate(ast, {
