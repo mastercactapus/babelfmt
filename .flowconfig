@@ -1,0 +1,9 @@
+[include]
+./src
+
+[libs]
+./lib/babel/lib/types.js
+./lib/babel/packages/babel-traverse/src/path/index.js
+
+[options]
+strip_root=true
