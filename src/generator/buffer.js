@@ -12,6 +12,7 @@ declare class BufferToken {
   startOfLine: ?bool;
   endOfLine: ?bool;
   alignType: ?string;
+  padRight: ?bool;
   indent: ?number;
   value: string;
 }
@@ -55,14 +56,17 @@ export default class Buffer {
   }
 
   Space() {
-    if (this._tail.value === " " && this._tail.startOfLine) return;
-    this.Write(" ");
+    this._tail.padRight = true;
   }
 
   push(t: BufferToken) {
     if (t.value === "" && this._tail.value === "" && this._tail.startOfLine === true) {
       this._tail.endOfLine = true;
       return
+    }
+    if (t.value.match(/\s$/)) {
+      t.value = t.value.trim();
+      t.padRight = true;
     }
     if (this._tail.endOfLine) {
       t.startOfLine = true;
@@ -115,6 +119,27 @@ export default class Buffer {
     this.push({value: s, alignType})
   }
 
+  removeToken(t: BufferToken) {
+    if (t.prev) {
+      t.prev.next = t.next;
+    }
+    if (t.next) {
+      t.next.prev = t.prev;
+    }
+    t.prev= null;
+    t.next= null;
+    if (this._tail === t) {
+      this._tail = t.prev;
+    }
+  }
+
+  TrimNewlines() {
+    if (this._tail.value==="") {
+      this.removeToken(this._tail)
+    }
+    this._tail.endOfLine = false;
+  }
+
   String(): string {
     var buf = ""
     var t = this._head
@@ -126,7 +151,11 @@ export default class Buffer {
         // add semicolon in front of [ or ( on new line
         buf+=";"
       }
+
       buf+=t.value
+      if (t.padRight && !t.endOfLine) {
+        buf+=" "
+      }
 
       if (t.endOfLine) buf+="\n"
       t=t.next
