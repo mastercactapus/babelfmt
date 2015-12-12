@@ -13,6 +13,7 @@ declare class BufferToken {
   endOfLine: ?bool;
   alignType: ?string;
   padRight: ?bool;
+  padLeft: ?bool;
   indent: ?number;
   value: string;
 }
@@ -65,9 +66,15 @@ export default class Buffer {
       return
     }
     if (t.value.match(/\s$/)) {
-      t.value = t.value.trim();
+      t.value = t.value.replace(/\s+$/, "")
       t.padRight = true;
     }
+    if (t.value.match(/^\s/)) {
+      t.value = t.value.replace(/^\s+/, "")
+      t.padLeft = true;
+    }
+
+
     if (this._tail.endOfLine) {
       t.startOfLine = true;
     }
@@ -152,6 +159,9 @@ export default class Buffer {
         buf+=";"
       }
 
+      if (t.padLeft && !t.startOfLine && !t.prev.padRight) {
+        buf+=" "
+      }
       buf+=t.value
       if (t.padRight && !t.endOfLine) {
         buf+=" "
