@@ -524,7 +524,7 @@ export default class Printer extends Buffer {
       if (needComma) this.Write(", ")
       this.Write("{ ")
       this.Indent()
-      this.PrintList(named, node);
+      this.PrintList(named, node, ", ");
       this.Dedent()
       this.Write(" }")
     }
