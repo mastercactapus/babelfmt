@@ -119,7 +119,7 @@ export default class Printer extends Buffer {
       this.Write("*")
     }
     this.Space()
-    this.Print(node.id, node)
+    if (node.id) this.Print(node.id, node)
     if (node.typeParameters) {
       this.Print(node.typeParameters, node)
     }
@@ -452,18 +452,29 @@ export default class Printer extends Buffer {
       return
     }
 
-    var startedSpec = false;
-    node.specifiers.forEach((spec, index)=>{
-      if (index) {
-        this.Write(", ")
-      }
-      if (spec.type === "ImportSpecifier" && !startedSpec) {
-        startedSpec = true
-        this.Write("{ ")
-      }
-      this.Print(spec, node)
-    })
-    if (startedSpec) {
+
+    var named = _.filter(node.specifiers, {type: "ImportSpecifier"});
+    var def = _.find(node.specifiers, {type: "ImportDefaultSpecifier"});
+    var namespace = _.find(node.specifiers, {type: "ImportNamespaceSpecifier"});
+
+    var needComma = false;
+    if (def) {
+      this.Print(def, node)
+      needComma = true;
+    }
+
+    if (namespace) {
+      if (needComma) this.Write(", ")
+      this.Print(namespace, node)
+      needComma = true
+    }
+
+    if (named.length) {
+      if (needComma) this.Write(", ")
+      this.Write("{ ")
+      this.Indent()
+      this.PrintList(named, node);
+      this.Dedent()
       this.Write(" }")
     }
 
@@ -486,6 +497,42 @@ export default class Printer extends Buffer {
   ImportNamespaceSpecifier(node: BabelNodeImportNamespaceSpecifier, parent: ?BabelNode) {
     this.Write("* as ")
     this.Print(node.local, node)
+  }
+
+  ExportNamedDeclaration(node: BabelNodeExportNamedDeclaration, parent: ?BabelNode) {
+    this.Write("export ")
+
+    if (node.specifiers.length) {
+      this.Write("{ ")
+      this.Indent()
+      this.PrintList(node.specifiers, node, ", ")
+      this.Dedent()
+      this.Write(" } ")
+    } else if (node.declaration) {
+      this.Print(node.declaration, node)
+    }
+    if (node.source) {
+      this.Write(" from ")
+      this.Print(node.source, node)
+    }
+  }
+
+  ExportDefaultDeclaration(node: BabelNodeExportDefaultDeclaration, parent: ?BabelNode) {
+    this.Write("export default ")
+    this.Print(node.declaration, node)
+  }
+
+  ExportSpecifier(node: BabelNodeExportSpecifier, parent: ?BabelNode) {
+    this.Print(node.local)
+    if (node.exported.name !== node.local.name) {
+      this.Write(" as ")
+      this.Print(node.exported)
+    }
+  }
+
+  ExportAllDeclaration(node: BabelNodeExportAllDeclaration, parent: ?BabelNode) {
+    this.Write("export * from ")
+    this.Print(node.source)
   }
 
   MemberExpression(node: BabelNodeMemberExpression, parent: ?BabelNode) {
