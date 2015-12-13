@@ -95,7 +95,7 @@ function format(_code: string): string {
 	if (cli.E) {
 		var p = new Printer();
 		p.File(ast);
-		return p.String()
+		return shebang + p.String() + "\n"
 	}
 
 	return shebang + generate(ast, {
