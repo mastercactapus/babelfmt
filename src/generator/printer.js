@@ -237,6 +237,12 @@ export default class Printer extends Buffer {
   TypeParameterInstantiation(node: BabelNodeTypeParameterInstantiation, parent: ?BabelNode) {
     this.Write("<")
     this.PrintList(node.params, node, ", ")
+    this.Write(">")
+  }
+  TypeParameterDeclaration(node: BabelNodeTypeParameterDeclaration, parent: ?BabelNode) {
+    this.Write("<")
+    this.PrintList(node.params, node, ", ")
+    this.Write(">")
   }
   StringTypeAnnotation(node: BabelNodeStringTypeAnnotation, parent: ?BabelNode) {
     this.Write("string")
@@ -421,6 +427,10 @@ export default class Printer extends Buffer {
       this.Write("async ")
     }
 
+    if (node.generator) {
+      this.Write("*")
+    }
+
     if (node.computed)   this.Write("[")
       this.Print(node.key, node)
     if (node.computed) this.Write("]")
@@ -550,6 +560,97 @@ export default class Printer extends Buffer {
     }
   }
 
+  ClassDeclaration(node: BabelNodeClassDeclaration, parent: ?BabelNode) {
+    if (node.decorators && node.decorators.length) {
+      this.PrintList(node.decorators, node)
+      this.Writeln()
+    }
+    this.Write("class ")
+    this.Print(node.id, node)
+    if (node.typeParameters) {
+      this.Print(node.typeParameters, node)
+    }
+    this.Space()
+    if (node.superClass) {
+      this.Write("extends ")
+      this.Print(node.superClass, node)
+      if (node.superTypeParameters) {
+        this.Print(node.superTypeParameters, node)
+      }
+      this.Space()
+    }
+    this.Print(node.body, node)
+  }
+
+  ClassBody(node: BabelNodeClassBody, parent: ?BabelNode) {
+    this.Write("{")
+    this.Writeln()
+    this.Indent()
+    this.PrintList(node.body, node)
+    this.Dedent()
+    this.Writeln()
+    this.Write("}")
+  }
+
+  ClassMethod(node: BabelNodeClassMethod, parent: ?BabelNode) {
+    if (node.static) {
+      this.Write("static ")
+    }
+
+    if (node.kind === "get") {
+      this.Write("get ")
+    } else if (node.kind === "set") {
+      this.Write("set ")
+    } else if (node.async) {
+      this.Write("async ")
+    }
+
+    if (node.generator) {
+      this.Write("*")
+    }
+
+    if (node.computed) this.Write("[")
+    this.Print(node.key)
+    if (node.computed) this.Write("]")
+
+    if (node.typeParameters) {
+      this.Print(node.typeParameters, node)
+    }
+
+    this.Space()
+
+    this.Write("(")
+    this.Indent()
+    this.PrintList(node.params, node)
+    this.Dedent()
+    this.Write(")")
+
+    this.Space()
+
+    this.Print(node.body, node)
+
+  }
+
+  ClassProperty(node: BabelNodeClassProperty, parent: ?BabelNode) {
+    if (node.static) {
+      this.Write("static ")
+    }
+    if (node.computed) this.Write("[")
+    this.Print(node.key, node)
+    if (node.computed) this.Write("]")
+    if (node.typeAnnotation) {
+      this.Print(node.typeAnnotation, node)
+    }
+    if (node.value) {
+      this.WriteAlign(" = ", "class_prop")
+      this.Print(node.value, node)
+    }
+  }
+
+  NumberTypeAnnotation(node: BabelNodeNumberTypeAnnotation, parent: ?BabelNode) {
+    this.Write("number")
+  }
+
   JSXElement(node: BabelNodeJSXElement, parent: ?BabelNode) {
     this.Print(node.openingElement, node)
     if (node.closingElement) {
@@ -557,10 +658,8 @@ export default class Printer extends Buffer {
         this.Print(node.children[0], node)
       } else if (node.children.length > 1) {
         this.Indent()
-        // this.Write("\n")
         this.PrintList(node.children, node, "\n")
         this.Dedent()
-        // this.Write("\n")
       }
       this.Print(node.closingElement, node)
     }
