@@ -412,6 +412,82 @@ export default class Printer extends Buffer {
     this.Write(")")
   }
 
+  ObjectMethod(node: BabelNodeObjectMethod, parent: ?BabelNode) {
+    if (node.kind === "get") {
+      this.Write("get ")
+    } else if (node.kind === "set") {
+      this.Write("set ")
+    } else if (node.async) {
+      this.Write("async ")
+    }
+
+    if (node.computed)   this.Write("[")
+      this.Print(node.key, node)
+    if (node.computed) this.Write("]")
+    this.Space()
+
+    this.Write("(")
+    this.Indent()
+    this.PrintList(node.params, node, ", ")
+    this.Dedent()
+    this.Write(") ")
+
+    this.Print(node.body, node)
+
+  }
+
+  WhileStatement(node: BabelNodeWhileStatement, parent: ?BabelNode) {
+    this.Write("while (")
+    this.Indent()
+    this.Print(node.test, node)
+    this.Dedent()
+    this.Write(") ")
+    this.Print(node.body, node)
+  }
+
+  ImportDeclaration(node: BabelNodeImportDeclaration, parent: ?BabelNode) {
+    this.Write("import ")
+    if (!node.specifiers.length) {
+      this.Print(node.source, node)
+      return
+    }
+
+    var startedSpec = false;
+    node.specifiers.forEach((spec, index)=>{
+      if (index) {
+        this.Write(", ")
+      }
+      if (spec.type === "ImportSpecifier" && !startedSpec) {
+        startedSpec = true
+        this.Write("{ ")
+      }
+      this.Print(spec, node)
+    })
+    if (startedSpec) {
+      this.Write(" }")
+    }
+
+    this.Write(" from ")
+    this.Print(node.source, node)
+  }
+
+  ImportDefaultSpecifier(node: BabelNodeImportDefaultSpecifier, parent: ?BabelNode) {
+    this.Print(node.local, node)
+  }
+
+  ImportSpecifier(node: BabelNodeImportSpecifier, parent: ?BabelNode) {
+    this.Print(node.imported, node)
+    if (node.imported.name !== node.local.name) {
+      this.Write(" as ")
+      this.Print(node.local, node)
+    }
+  }
+
+  ImportNamespaceSpecifier(node: BabelNodeImportNamespaceSpecifier, parent: ?BabelNode) {
+    this.Write("* as ")
+    this.Print(node.local, node)
+  }
+
   MemberExpression(node: BabelNodeMemberExpression, parent: ?BabelNode) {
     this.Print(node.object, node)
     if (node.computed) {
