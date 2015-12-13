@@ -57,7 +57,9 @@ export default class Printer extends Buffer {
     if (node.leadingComments && node.leadingComments.length) this.PrintComments(node.leadingComments, node)
 
     this.PrintBlankLines(node)
+    if (node.extra && node.extra.parenthesized) this.Write("(")
     this[node.type](node, parent)
+    if (node.extra && node.extra.parenthesized) this.Write(")")
 
     if (node.trailingComments && node.trailingComments.length) this.PrintComments(node.trailingComments, node)
   }
@@ -340,7 +342,6 @@ export default class Printer extends Buffer {
   }
 
   BinaryExpression(node: BabelNodeBinaryExpression, parent: ?BabelNode) {
-    if (node.extra && node.extra.parenthesized) this.Write("(")
     this.Print(node.left, node)
     this.Indent()
     if (!SameLine(node.left, node.right)) {
@@ -352,7 +353,6 @@ export default class Printer extends Buffer {
     this.Space()
     this.Print(node.right, node)
     this.Dedent()
-    if (node.extra && node.extra.parenthesized) this.Write(")")
   }
 
   LogicalExpression(node: BabelNodeLogicalExpression, parent: ?BabelNode) {
