@@ -193,7 +193,6 @@ export default class Printer extends Buffer {
   }
 
   BlockStatement(node: BabelNodeBlockStatement, parent: ?BabelNode) {
-    var oneLine = IsOneLine(node)
     this.Write("{")
 
     var count = node.body.length;
@@ -451,10 +450,8 @@ export default class Printer extends Buffer {
   CallExpression(node: BabelNodeCallExpression, parent: ?BabelNode) {
     this.Print(node.callee, node)
     this.Write("(")
-    this.Indent()
 
     this.PrintList(node.arguments, node, ", ")
-    this.Dedent()
 
     if (node.arguments.length && !SameLine(node.callee, node.arguments[0])) {
       this.PrintWhitespace(node.arguments[0], node, "end", false, "end", true)
