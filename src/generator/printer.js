@@ -889,65 +889,39 @@ export default class Printer extends Buffer {
   NumberTypeAnnotation(node: BabelNodeNumberTypeAnnotation, parent: ?BabelNode) {
     this.Write("number")
   }
-
-  JSXElement(node: BabelNodeJSXElement, parent: ?BabelNode) {
-    this.Print(node.openingElement, node)
-    if (node.closingElement) {
-      if (node.children.length === 1) {
-        this.Print(node.children[0], node)
-      } else if (node.children.length > 1) {
-        this.Indent()
-        this.PrintList(node.children, node, "\n")
-        this.Dedent()
-      }
-      this.Print(node.closingElement, node)
+  SwitchStatement(node: BabelNodeSwitchStatement, parent: ?BabelNode) {
+    this.Write("switch (")
+    this.Print(node.discriminant, node)
+    this.Write(") {")
+    if (node.cases.length) {
+      this.Writeln()
+      this.Indent()
+      this.PrintList(node.cases, node)
+      this.Dedent()
+      this.Writeln()
     }
+    this.Write("}")
+  }
+  SwitchCase(node: BabelNodeSwitchCase, parent: ?BabelNode) {
+    if (node.test) {
+    this.Write("case ")
+    this.Print(node.test, node)
+  } else {
+    this.Write("default")
+  }
+    this.Writeln(":")
+    this.Indent()
+    this.PrintList(node.consequent, node)
+    this.Dedent()
   }
 
-  JSXIdentifier(node: BabelNodeJSXIdentifier, parent: ?BabelNode) {
-    this.Write(node.name)
+  BreakStatement(node: BabelNodeBreakStatement, parent: ?BabelNode) {
+    if (parent && t.isSwitchCase(parent)) this.Dedent()
+    this.Write("break")
+    if (parent && t.isSwitchCase(parent)) this.Indent()
   }
-  JSXText(node: BabelNodeJSXText, parent: ?BabelNode) {
-    this.Write(node.value.trim())
-  }
-
-  JSXAttribute(node: BabelNodeJSXAttribute, parent: ?BabelNode) {
-    this.Print(node.name, node)
-    if (node.value) {
-      this.Write("=")
-      this.Print(node.value, node)
-    }
-  }
-
-  JSXOpeningElement(node: BabelNodeJSXOpeningElement, parent: ?BabelNode) {
-    this.Write("<")
-    this.Print(node.name, node)
-    if (!node.attributes.length) {
-      this.Write(node.selfClosing ? "/>" : ">")
-      return
-    }
-
-    this.Space()
-
-    if (IsOneLine(node)) {
-      this.PrintList(node.attributes, node, " ")
-    } else {
-      this.IndentLock()
-      this.PrintList(node.attributes, node, "\n")
-      this.DedentLock()
-    }
-
-    if (node.selfClosing) {
-      this.Write("/>")
-    } else {
-      this.Write(">")
-    }
-  }
-
-  JSXClosingElement(node: BabelNodeJSXClosingElement, parent: ?BabelNode) {
-    this.Write("</")
-    this.Print(node.name, node)
-    this.Write(">")
+  DebuggerStatement(node: BabelNodeDebuggerStatement, parent: ?BabelNode) {
+    this.Write("debugger")
   }
 
 }
