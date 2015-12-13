@@ -151,7 +151,7 @@ export default class Buffer {
     var buf = ""
     var t = this._head
     while (t) {
-      if (t.startOfLine && t.value!="") {
+      if (t.startOfLine && !t.endOfLine) {
         buf+=_.repeat(this._indentFormat, t.indent)
       }
       if (t.startOfLine && t.value && (t.value[0]=== "(" ||t.value[0]==="[")   ) {
