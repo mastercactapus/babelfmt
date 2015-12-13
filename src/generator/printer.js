@@ -540,6 +540,94 @@ export default class Printer extends Buffer {
     }
   }
 
+  NullLiteral(node: BabelNodeNullLiteral, parent: ?BabelNode) {
+    this.Write("null")
+  }
+
+  UpdateExpression(node: BabelNodeUpdateExpression, parent: ?BabelNode) {
+    if (node.prefix) {
+      this.Write(node.operator)
+      this.Print(node.argument, node)
+    } else {
+      this.Print(node.argument, node)
+      this.Write(node.operator)
+    }
+  }
+
+  TypeAlias(node: BabelNodeTypeAlias, parent: ?BabelNode) {
+    this.Write("type ")
+    this.Print(node.id, node)
+    if (node.typeAnnotation) {
+      this.Print(node.typeAnnotation, node)
+    }
+    this.Space()
+    this.WriteAlign("= ", "type_alias")
+    this.Print(node.right, node)
+  }
+
+  DeclareClass(node: BabelNodeDeclareClass, parent: ?BabelNode) {
+    this.Write("declare class ")
+    this.Print(node.id, node)
+    if (node.typeParameters) {
+      this.Print(node.typeParameters)
+    }
+    if (node.extends.length) {
+      this.Write(" extends ")
+      this.PrintList(node.extends, node, ", ")
+    }
+    this.Space()
+    this.Print(node.body, node)
+  }
+
+  InterfaceExtends(node: BabelNodeInterfaceExtends, parent: ?BabelNode) {
+    this.Print(node.id, node)
+    if (node.typeParameters) {
+      this.Print(node.typeParameters, node)
+    }
+  }
+
+  ObjectTypeAnnotation(node: BabelNodeObjectTypeAnnotation, parent: ?BabelNode) {
+    this.Write("{")
+    var props = node.properties.concat(node.callProperties, node.indexers)
+    if (props.length) {
+      this.Indent()
+      this.PrintList(props, node, ";\n")
+      this.Write(";")
+      this.Dedent()
+      this.Writeln()
+    }
+    this.Write("}")
+  }
+
+  ObjectTypeProperty(node: BabelNodeObjectTypeProperty, parent: ?BabelNode) {
+    if (node.static) this.Write("static ")
+    this.Print(node.key, node)
+    if (node.optional) this.Write("?")
+    if (!t.isFunctionTypeAnnotation(node.value)) {
+      this.Write(": ")
+    }
+    this.Print(node.value, node);
+  }
+
+  ObjectTypeCallProperty(node: BabelNodeObjectTypeCallProperty, parent: ?BabelNode) {
+    if (node.static) this.Write("static ")
+    this.Print(node.value, node)
+  }
+
+  ObjectTypeIndexer(node: BabelNodeObjectTypeIndexer, parent: ?BabelNode) {
+    if (node.static) this.Write("static ")
+    this.Write("[")
+    this.Print(node.id, node)
+    this.Write(": ")
+    this.Print(node.key, node)
+    this.Write("]: ")
+    this.Print(node.value, node)
+  }
+
+  RegExpLiteral(node: BabelNodeRegExpLiteral, parent: ?BabelNode) {
+    this.Write("/" + node.pattern + "/" + node.flags)
+  }
+
   ExportAllDeclaration(node: BabelNodeExportAllDeclaration, parent: ?BabelNode) {
     this.Write("export * from ")
     this.Print(node.source)
