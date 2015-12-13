@@ -533,6 +533,24 @@ export default class Printer extends Buffer {
     this.Print(node.source, node)
   }
 
+  TryStatement(node: BabelNodeTryStatement, parent: ?BabelNode) {
+    this.Write("try ")
+    this.Print(node.block, node)
+    this.Space()
+    this.Print(node.handler, node)
+    if (node.finalizer) {
+      this.Space()
+      this.Write(" finally ")
+      this.Print(node.finalizer, node)
+    }
+  }
+  CatchClause(node: BabelNodeCatchClause, parent: ?BabelNode) {
+    this.Write("catch (")
+    this.Print(node.param, node)
+    this.Write(") ")
+    this.Print(node.body, node)
+  }
+
   ImportDefaultSpecifier(node: BabelNodeImportDefaultSpecifier, parent: ?BabelNode) {
     this.Print(node.local, node)
   }
