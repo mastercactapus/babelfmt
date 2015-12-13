@@ -12,6 +12,7 @@ export default {
     }
   },
   VariableDeclaration(path: NodePath) {
+    // if not export!
     var hasInit = []
     var noInit = []
     var node: BabelNodeVariableDeclaration = path.node;

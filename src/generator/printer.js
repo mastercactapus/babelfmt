@@ -84,6 +84,24 @@ export default class Printer extends Buffer {
 
   PrintComments(comments: Array<BabelNodeComment>, parent: BabelNode): bool {
 
+    var res = _.partition(comments, c=>{
+      return _.any(this.comments, {start: c.start})
+    })
+
+      var toPrint: Array<BabelNodeComment> = res[0]
+      this.comments = res[1]
+
+    toPrint.forEach(c=>{
+      if (c.type==="CommentBlock") {
+        this.BlockComment(c, parent)
+        this.PrintWhitespace(c, parent)
+      } else if (c.type==="CommentLine") {
+        this.LineComment(c, parent)
+        this.PrintWhitespace(c, parent, "end", true)
+      } else {
+        console.error("cannot print unknown comment type: " + c.type)
+      }
+    })
   }
 
   BlockComment(node: BabelNodeBlockComment, parent: ?BabelNode) {
@@ -103,12 +121,35 @@ export default class Printer extends Buffer {
     }
     this.PrintList(node.body, node)
   }
+  Super(Node: BabelNodeSuper, parent: ?BabelNode) {
+    this.Write("super")
+  }
   Directive(node: BabelNodeDirective, parent: ?BabelNode) {
     this.Print(node.value, node)
     this.Write(";") // directives say they need semicolons
   }
   DirectiveLiteral(node: BabelNodeDirectiveLiteral, parent: ?BabelNode) {
     this.PrintQuote(node.value);
+  }
+  ConditionalExpression(node: BabelNodeConditionalExpression, parent: ?BabelNode) {
+    var multiline = node.loc && node.loc.start.line !== node.loc.end.line
+    this.Print(node.test, node)
+    if (multiline) {
+      this.Indent()
+      this.Writeln()
+    } else {
+      this.Space()
+    }
+    this.Write("? ")
+    this.Print(node.consequent, node)
+    if (multiline) {
+      this.Writeln()
+    } else {
+      this.Space()
+    }
+    this.Print(node.alternate, node)
+
+    if (multiline) this.Dedent()
   }
   FunctionDeclaration(node: BabelNodeFunctionDeclaration, parent: ?BabelNode) {
     if (node.async) {
