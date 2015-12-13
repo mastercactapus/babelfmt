@@ -340,6 +340,7 @@ export default class Printer extends Buffer {
   }
 
   BinaryExpression(node: BabelNodeBinaryExpression, parent: ?BabelNode) {
+    if (node.extra && node.extra.parenthesized) this.Write("(")
     this.Print(node.left, node)
     this.Indent()
     if (!SameLine(node.left, node.right)) {
@@ -351,6 +352,7 @@ export default class Printer extends Buffer {
     this.Space()
     this.Print(node.right, node)
     this.Dedent()
+    if (node.extra && node.extra.parenthesized) this.Write(")")
   }
 
   LogicalExpression(node: BabelNodeLogicalExpression, parent: ?BabelNode) {
