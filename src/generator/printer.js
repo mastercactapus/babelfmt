@@ -586,6 +586,92 @@ export default class Printer extends Buffer {
     }
   }
 
+  FunctionExpression(node: BabelNodeFunctionExpression, parent: ?BabelNode) {
+    if (node.async) this.Write("async ")
+    this.Write("function")
+    if (node.generator) this.Write("*")
+    this.Space()
+    if (node.id) this.Print(node.id, node)
+    this.Write("(")
+    this.Indent()
+    this.PrintList(node.params, node, ", ")
+    this.Dedent()
+    this.Write(")")
+    this.Space()
+    this.Print(node.body, node)
+  }
+
+  ThrowStatement(node: BabelNodeThrowStatement, parent: ?BabelNode) {
+    this.Write("throw ")
+    this.Print(node.argument, node)
+  }
+  NewExpression(node: BabelNodeNewExpression, parent: ?BabelNode) {
+    this.Write("new ")
+    this.Print(node.callee, node)
+    this.Write("(")
+    this.PrintList(node.arguments, node, ", ")
+    this.Write(")")
+  }
+
+  AnyTypeAnnotation(node: BabelNodeAnyTypeAnnotation, parent: ?BabelNode) {
+    this.Write("any")
+  }
+  NullLiteralTypeAnnotation(node: BabelNodeNullLiteralTypeAnnotation, parent: ?BabelNode) {
+    this.Write("null")
+  }
+
+  DeclareFunction(node: BabelNodeDeclareFunction, parent: ?BabelNode) {
+    this.Write("declare function ")
+    this.Print(node.id, node)
+  }
+
+  DeclareModule(node: BabelNodeDeclareModule, parent: ?BabelNode) {
+    this.Write("declare module ")
+    this.Print(node.id, node)
+    this.Space()
+    this.Print(node.body, node)
+  }
+
+  DeclareVariable(node: BabelNodeDeclareVariable, parent: ?BabelNode) {
+    this.Write("declare var ")
+    this.Print(node.id, node)
+  }
+
+  ExistentialTypeParam(node: BabelNodeExistentialTypeParam, parent: ?BabelNode) {
+    this.Write("*")
+  }
+
+  FunctionTypeAnnotation(node: BabelNodeFunctionTypeAnnotation, parent: ?BabelNode) {
+    if (node.typeParameters) this.Print(node.typeParameters)
+    this.Write("(")
+    this.PrintList(node.params, node, ", ");
+
+    if (node.rest) {
+      if (node.params.length) {
+        this.Write(", ");
+      }
+      this.Write("...")
+      this.Print(node.rest,node)
+    }
+
+    this.Write(")")
+
+    if (t.isObjectTypeProperty(parent) || t.isObjectTypeCallProperty(parent) || t.isDeclareFunction(parent)) {
+      this.Write(": ")
+    } else {
+      this.Space()
+      this.Write(" => ")
+    }
+    if (node.returnType) this.Print(node.returnType, node)
+  }
+
+  FunctionTypeParam(node: BabelNodeFunctionTypeParam, parent: ?BabelNode) {
+    this.Print(node.name, node)
+    if (node.optional) this.Write("?")
+    this.Write(": ")
+    this.Print(node.typeAnnotation)
+  }
+
   ObjectTypeAnnotation(node: BabelNodeObjectTypeAnnotation, parent: ?BabelNode) {
     this.Write("{")
     var props = node.properties.concat(node.callProperties, node.indexers)
