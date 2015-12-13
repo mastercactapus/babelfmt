@@ -854,9 +854,13 @@ export default class Printer extends Buffer {
 
     this.Write("(")
     this.Indent()
-    this.PrintList(node.params, node)
+    this.PrintList(node.params, node, ", ")
     this.Dedent()
     this.Write(")")
+
+    if (node.returnType) {
+      this.Print(node.returnType, node)
+    }
 
     this.Space()
 
