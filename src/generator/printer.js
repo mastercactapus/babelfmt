@@ -28,14 +28,14 @@ export default class Printer extends Buffer {
     super.Write(s)
   }
 
-  PrintWhitespace(nodeA: ?BabelNode, nodeB: ?BabelNode, loc: "start"|"end" = "end", skipOne: bool = false, locB:"start"|"end"="start") {
+  PrintWhitespace(nodeA: ?BabelNode, nodeB: ?BabelNode, loc: "start"|"end" = "end", skipOne: bool = false, locB:"start"|"end"="start", skipTwo: bool = false) {
     if (!nodeA || !nodeA.loc || !nodeB || !nodeB.loc) return
     var lineB = locB==="start" ? nodeB.loc.start.line : nodeB.loc.end.line;
     var lineA = loc==="start" ? nodeA.loc.start.line : nodeA.loc.end.line;
     if (!skipOne && !this.IsNewLine() && lineA !== lineB) {
       this.Writeln()
     }
-    if (lineB - lineA > 1) {
+    if (!skipTwo && lineB - lineA > 1) {
       this.Writeln()
     }
   }
@@ -61,12 +61,18 @@ export default class Printer extends Buffer {
     if (node.trailingComments && node.trailingComments.length) this.PrintComments(node.trailingComments, node)
   }
 
-  PrintList(nodes: Array<BabelNode>, parent: ?BabelNode, separator: string = "\n") {
-    if (nodes.length) {
-      this.PrintWhitespace(parent, nodes[0], "start")
+  PrintList(nodes: Array<BabelNode>, parent: ?BabelNode, separator: string = "\n", alignType: string = "") {
+    if (nodes.length && parent) {
+      if (parent.type === "CallExpression") {
+        this.PrintWhitespace(parent.callee, nodes[0], "end", false, "start")
+      } else {
+        this.PrintWhitespace(parent, nodes[0], "start")
+      }
     }
-
     nodes.forEach((node, index)=>{
+      if (alignType) {
+        this.Write("", alignType)
+      }
       if (index) {
         this.Write(separator);
         this.PrintWhitespace(nodes[index-1], node, "end", separator.indexOf("\n") !== -1 )
@@ -380,7 +386,14 @@ export default class Printer extends Buffer {
   CallExpression(node: BabelNodeCallExpression, parent: ?BabelNode) {
     this.Print(node.callee, node)
     this.Write("(")
+    this.Indent()
+
     this.PrintList(node.arguments, node, ", ")
+    this.Dedent()
+
+    if (node.arguments.length && !SameLine(node.callee, node.arguments[0])) {
+      this.PrintWhitespace(node.arguments[0], node, "end", false, "end", true)
+    }
     this.Write(")")
   }
 
@@ -391,6 +404,9 @@ export default class Printer extends Buffer {
       this.Print(node.property, node)
       this.Write("]")
     } else {
+      if (!SameLine(node.object, node.property)) {
+        this.Writeln()
+      }
       this.Write(".")
       this.Print(node.property, node)
     }
