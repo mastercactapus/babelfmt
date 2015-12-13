@@ -149,6 +149,7 @@ export default class Printer extends Buffer {
     } else {
       this.Space()
     }
+    this.Write(": ")
     this.Print(node.alternate, node)
 
     if (multiline) this.Dedent()
