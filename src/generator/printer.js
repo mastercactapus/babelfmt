@@ -8,6 +8,7 @@ function SameLine(nodeA: BabelNode, nodeB: BabelNode): bool {
   return nodeA.loc.end.line === nodeB.loc.start.line;
 }
 
+
 export default class Printer extends Buffer {
   constructor() {
     super()
@@ -273,6 +274,20 @@ export default class Printer extends Buffer {
     this.Write("=>")
     this.Space()
     this.Print(node.body, node)
+  }
+
+  ArrayExpression(node: BabelNodeArrayExpression, parent: ?BabelNode) {
+    this.Write("[")
+    if (node.elements.length) this.Space()
+    this.Indent()
+    this.PrintList(node.elements, node, ", ", "array_element")
+    this.Dedent()
+    if (node.elements.length) {
+      this.Space()
+      var lastEl = node.elements[node.elements.length-1];
+      this.PrintWhitespace(lastEl, node, "end", false, "end")
+    }
+    this.Write("]")
   }
 
   BinaryExpression(node: BabelNodeBinaryExpression, parent: ?BabelNode) {
