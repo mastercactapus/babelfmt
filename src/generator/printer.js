@@ -91,13 +91,15 @@ export default class Printer extends Buffer {
       var toPrint: Array<BabelNodeComment> = res[0]
       this.comments = res[1]
 
-    toPrint.forEach(c=>{
+    toPrint.forEach((c, index)=>{
+      var next = parent
+      if (index < toPrint.length-1) next= toPrint[index+1]
       if (c.type==="CommentBlock") {
         this.BlockComment(c, parent)
-        this.PrintWhitespace(c, parent)
+        this.PrintWhitespace(c, next)
       } else if (c.type==="CommentLine") {
         this.LineComment(c, parent)
-        this.PrintWhitespace(c, parent, "end", true)
+        this.PrintWhitespace(c, next, "end", true)
       } else {
         console.error("cannot print unknown comment type: " + c.type)
       }
